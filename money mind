@@ -1,0 +1,379 @@
+MoneyMind/
+ ├─ android/
+ ├─ ios/
+ ├─ lib/
+ │   ├─ main.dart
+ │   ├─ config/theme.dart
+ │   ├─ screens/
+ │   │   ├─ home/home_screen.dart
+ │   │   ├─ add_expense/add_expense_screen.dart
+ │   │   ├─ budget/budget_screen.dart
+ │   │   ├─ insights/ai_insights_screen.dart
+ │   │   └─ receipt_scanner/receipt_scanner_screen.dart
+ │   └─ services/
+ │       ├─ auth_service.dart
+ │       ├─ expense_service.dart
+ │       ├─ budget_service.dart
+ │       └─ ai_service.dart
+ └─ pubspec.yaml
+name: money_mind
+description: AI-powered expense manager
+publish_to: 'none'
+version: 1.0.0+1
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.24.0
+  cloud_firestore: ^4.11.0
+  firebase_auth: ^4.9.0
+  provider: ^6.0.6
+  intl: ^0.18.1
+  google_ml_kit: ^0.14.0
+  image_picker: ^0.8.7+5
+  openai: ^1.0.0
+  charts_flutter: ^0.12.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'config/theme.dart';
+import 'screens/home/home_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MoneyMindApp());
+}
+
+class MoneyMindApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'MoneyMind',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      home: HomeScreen(),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+
+class AppTheme {
+  static ThemeData lightTheme = ThemeData(
+    primaryColor: Color(0xFF4A6CF7),
+    scaffoldBackgroundColor: Color(0xFFF4F6FA),
+    fontFamily: 'Poppins',
+    appBarTheme: AppBarTheme(
+      backgroundColor: Color(0xFF4A6CF7),
+      titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        primary: Color(0xFF4A6CF7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        minimumSize: Size(double.infinity, 50),
+        textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+    ),
+  );
+
+  static ThemeData darkTheme = ThemeData(
+    primaryColor: Color(0xFF4A6CF7),
+    scaffoldBackgroundColor: Color(0xFF121212),
+    fontFamily: 'Poppins',
+    appBarTheme: AppBarTheme(
+      backgroundColor: Color(0xFF4A6CF7),
+      titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        primary: Color(0xFF4A6CF7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        minimumSize: Size(double.infinity, 50),
+        textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+    ),
+  );
+}
+import 'package:flutter/material.dart';
+import '../../screens/add_expense/add_expense_screen.dart';
+import '../../screens/budget/budget_screen.dart';
+import '../../screens/insights/ai_insights_screen.dart';
+import '../../screens/receipt_scanner/receipt_scanner_screen.dart';
+
+class HomeScreen extends StatelessWidget {
+  final String userId = 'abc123'; // Replace with Firebase Auth user ID
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('MoneyMind')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('December 2025', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            SizedBox(height: 16),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Total Spent', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('12,450 PKR', style: TextStyle(fontSize: 20)),
+                    SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: 0.45,
+                      minHeight: 12,
+                      backgroundColor: Colors.grey[300],
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00C77F)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              color: Color(0xFFF0F4FF),
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(Icons.lightbulb, color: Color(0xFF4A6CF7)),
+                    SizedBox(width: 8),
+                    Expanded(child: Text('AI Tip: You spent 22% more on food this week')),
+                  ],
+                ),
+              ),
+            ),
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AddExpenseScreen(userId: userId))),
+                  child: Text('Add Expense'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BudgetScreen(userId: userId, month: '2025-12'))),
+                  child: Text('Budget'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AIInsightsScreen(userId: userId, month: '2025-12'))),
+                  child: Text('Insights'),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReceiptScannerScreen(userId: userId))),
+              child: Text('Scan Receipt'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+dependencies:
+  google_ml_kit: ^0.14.0
+  image_picker: ^0.8.7+5
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+import '../../services/expense_service.dart';
+
+class ReceiptScannerScreen extends StatefulWidget {
+  final String userId;
+  ReceiptScannerScreen({required this.userId});
+
+  @override
+  State<ReceiptScannerScreen> createState() => _ReceiptScannerScreenState();
+}
+
+class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
+  File? _image;
+  String _scannedText = '';
+  final ImagePicker _picker = ImagePicker();
+  final ExpenseService _expenseService = ExpenseService();
+
+  _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      setState(() => _image = File(pickedFile.path));
+      _scanText();
+    }
+  }
+
+  _scanText() async {
+    if (_image == null) return;
+    final inputImage = InputImage.fromFile(_image!);
+    final textDetector = GoogleMlKit.vision.textRecognizer();
+    final RecognizedText recognizedText = await textDetector.processImage(inputImage);
+
+    String text = recognizedText.text;
+    setState(() => _scannedText = text);
+
+    textDetector.close();
+  }
+
+  _saveExpenseFromText() async {
+    // Simple parsing example: extract first number as amount
+    RegExp exp = RegExp(r'\d+');
+    String? amountStr = exp.firstMatch(_scannedText)?.group(0);
+    if (amountStr != null) {
+      await _expenseService.addExpense(
+        widget.userId,
+        double.parse(amountStr),
+        'Unknown',
+        _scannedText,
+        DateTime.now(),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Expense added!')));
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Scan Receipt')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _image == null
+                ? Text('No image selected')
+                : Image.file(_image!, height: 250),
+            SizedBox(height: 16),
+            ElevatedButton(onPressed: _pickImage, child: Text('Capture Receipt')),
+            SizedBox(height: 16),
+            Text('Detected Text:'),
+            Expanded(child: SingleChildScrollView(child: Text(_scannedText))),
+            ElevatedButton(onPressed: _saveExpenseFromText, child: Text('Save as Expense')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+dependencies:
+  openai: ^1.0.0
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:openai/openai.dart';
+
+class AIService {
+  final CollectionReference _aiCollection = FirebaseFirestore.instance.collection('ai_insights');
+  final OpenAI openAI = OpenAI(apiKey: 'YOUR_OPENAI_API_KEY');
+
+  Future<void> generateAIInsights(String userId, String month, List<Map<String, dynamic>> expenses) async {
+    String expenseData = expenses.map((e) => '${e['category']}: ${e['amount']} PKR').join('\n');
+
+    final completion = await openAI.chat.completions.create(
+      model: 'gpt-4o-mini',
+      messages: [
+        {'role': 'system', 'content': 'You are a financial assistant AI.'},
+        {'role': 'user', 'content': 'Analyze this spending data:\n$expenseData\nGive 3 insights and 3 saving tips.'},
+      ],
+    );
+
+    String aiText = completion.choices.first.message.content;
+
+    Map<String, dynamic> insightsJson = {
+      'summary': aiText.split('\n').first,
+      'insights': aiText.split('\n').where((line) => line.contains('Insight')).toList(),
+      'savingTips': aiText.split('\n').where((line) => line.contains('Tip')).toList(),
+    };
+
+    await _aiCollection.doc('${userId}_$month').set({
+      'userId': userId,
+      'month': month,
+      'insightsJson': insightsJson,
+    });
+  }
+
+  Stream<DocumentSnapshot> getAIInsights(String userId, String month) {
+    return _aiCollection.doc('${userId}_$month').snapshots();
+  }
+}
+Column
+ ├─ Header (Month, Total Spent)
+ ├─ Weekly Bar Chart
+ ├─ Row (Today, Remaining)
+ ├─ AI Tip Card
+ └─ FloatingActionButton (+)
+ElevatedButton(
+  onPressed: () {},
+  style: ElevatedButton.styleFrom(
+    primary: Color(0xFF4A6CF7),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    minimumSize: Size(double.infinity, 50),
+  ),
+  child: Text('Save', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+)
+Card(
+  elevation: 4,
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  child: Padding(
+    padding: EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Category', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('Amount PKR', style: TextStyle(color: Colors.grey)),
+      ],
+    ),
+  ),
+)
+LinearProgressIndicator(
+  value: 0.45, // 45% used
+  minHeight: 12,
+  backgroundColor: Colors.grey[300],
+  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00C77F)),
+)
+flutter pub get
+flutter run
+lib/
+ ├─ main.dart
+ ├─ screens/
+ ├─ services/
+ └─ config/theme.dart
+<application
+    android:label="MoneyMind"
+<uses-permission android:name="android.permission.CAMERA"/>
+<key>CFBundleName</key>
+<string>MoneyMind</string>
+<key>NSCameraUsageDescription</key>
+<string>We need camera access to scan receipts</string>
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.24.0
+  cloud_firestore: ^4.11.0
+  firebase_auth: ^4.9.0
+  provider: ^6.0.6
+  intl: ^0.18.1
+  google_ml_kit: ^0.14.0
+  image_picker: ^0.8.7+5
+  openai: ^1.0.0
+  charts_flutter: ^0.12.0
+flutter pub get
+flutter run -d android
+flutter run -d ios
